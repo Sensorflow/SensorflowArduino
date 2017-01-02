@@ -1,0 +1,17 @@
+{
+    "name": "Sensorflow",
+    "keywords": "sensor, pb, protocol buffers, serial",
+    "description": "Layer for high level sensor management",
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/Sensorflow/SensorflowArduino"
+    },
+    "frameworks": "arduino",
+    "platforms": "atmelavr,atmelsam",
+    "dependencies": [
+      {
+        "name": "ProtocolBuffersStream"
+      }
+    ]
+}
