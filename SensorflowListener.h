@@ -11,6 +11,7 @@
 #include <StandardCplusplus.h>
 #endif
 
+#undef abs
 #include <map>
 #include <vector>
 #include <queue>
