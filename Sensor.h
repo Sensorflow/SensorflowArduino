@@ -27,9 +27,4 @@ public:
     Sensor* Config(void *);
 };
 
-
-
-
-
-
 #endif //SENSOR__H

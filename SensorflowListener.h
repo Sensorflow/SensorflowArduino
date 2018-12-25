@@ -1,14 +1,13 @@
-
 #include <Arduino.h>
 #include <pb_encode.h>
 #include <pb_decode.h>
-#include <ProtocolBuffersStream.h>
+#include "Messenger.h"
 
 #ifndef SENSORFLOWLISTENER_H
 #define SENSORFLOWLISTENER_H
 
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega328P__)
-#include <StandardCplusplus.h>
+#include <ArduinoSTL.h>
 #endif
 
 #undef abs
@@ -47,14 +46,11 @@ struct AvailableDevice {
 
 class SensorflowListener {
   private:
-    int interruptPin_;
-    int csPin_;
-    int max485WritePin_;
-    ProtocolBuffersStream *messenger_;
+    Messenger *messenger_;
     static void wakeUpNow();
   public:
     /* The manage of max485 is temporally. Later I will move to a more generic way */
-    SensorflowListener(Stream *stream, int interruptPin, int csPin, int max485WritePin, unsigned int timeout = 1000);
+    SensorflowListener(Messenger *messenger);
     Devices devices;
     Commands commands;
     std::queue<Notification> notifications;

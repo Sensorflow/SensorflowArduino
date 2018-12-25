@@ -10,8 +10,6 @@
     "frameworks": "arduino",
     "platforms": "atmelavr,atmelsam",
     "dependencies": [
-      {
-        "name": "ProtocolBuffersStream"
-      }
+      
     ]
 }

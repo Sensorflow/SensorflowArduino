@@ -6,21 +6,10 @@
 #include "commands/notification.h"
 #include "proto/command_sf.pb.c"
 #include <avr/sleep.h>
+#include <messenger/StreamMessenger.h>
 
-
-SensorflowListener::SensorflowListener(Stream *stream, int interruptPin, int csPin, int max485WritePin, unsigned int timeout){
-  messenger_ = new ProtocolBuffersStream(stream, timeout);
-  interruptPin_ = interruptPin;
-  csPin_ = csPin;
-  max485WritePin_ = max485WritePin;
-
-  pinMode(interruptPin_, OUTPUT);
-  pinMode(max485WritePin_, OUTPUT);
-  pinMode(csPin_, INPUT);
-
-  digitalWrite(interruptPin_, LOW);
-  digitalWrite(max485WritePin_, LOW);
-
+SensorflowListener::SensorflowListener(Messenger *messenger){
+  messenger_ = messenger;
   // Add default commands
   commands.push_back(AvailableCommand {Command_CommandType_PING, &commandPing});
   commands.push_back(AvailableCommand {Command_CommandType_READ, &commandRead});
@@ -29,23 +18,18 @@ SensorflowListener::SensorflowListener(Stream *stream, int interruptPin, int csP
 }
 
 bool SensorflowListener::send(const pb_field_t fields[], const void *src_struct){
-  digitalWrite(max485WritePin_, HIGH);
-  bool status = messenger_->send(fields,src_struct);
-  messenger_->flush();
-  digitalWrite(max485WritePin_, LOW);
+  bool status = messenger_->send(fields, src_struct);
   return status;
 }
 
 bool SensorflowListener::receive(const pb_field_t fields[], void *dest_struct){
-  digitalWrite(max485WritePin_, LOW);
   bool status = messenger_->receive(fields, dest_struct);
   return status;
 }
 
 bool SensorflowListener::next(bool sleepWhenInactive){
 
-  if(sleepWhenInactive && digitalRead(csPin_) == LOW) {
-    Serial.flush();
+  if(sleepWhenInactive) {
     sleepNow();
   } else {
     Command c = Command_init_zero;
@@ -65,11 +49,7 @@ bool SensorflowListener::next(bool sleepWhenInactive){
 }
 
 void SensorflowListener::setInterrupt(bool activated){
-  if(activated) {
-    digitalWrite(interruptPin_, HIGH);
-  } else {
-    digitalWrite(interruptPin_, LOW);
-  }
+  messenger_->interrupt(activated);
 }
 
 void SensorflowListener::notify(Notification notification){
