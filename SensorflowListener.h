@@ -15,7 +15,7 @@
 #include <vector>
 #include <queue>
 #include "Sensor.h"
-#include "proto/command_sf.pb.h"
+#include "proto/sf.pb.h"
 
 
 using namespace std;
@@ -33,11 +33,10 @@ class SensorflowListener;
 typedef void (*commandFunction)(SensorflowListener *listener);
 
 struct AvailableCommand {
-  int command;
   commandFunction fun;
 };
 
-typedef std::vector<AvailableCommand> Commands;
+typedef std::map<const char*, AvailableCommand, cmp_str> Commands;
 
 struct AvailableDevice {
     const char *name;

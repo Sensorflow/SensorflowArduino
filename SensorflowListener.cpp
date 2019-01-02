@@ -4,17 +4,20 @@
 #include "commands/ping.h"
 #include "commands/read.h"
 #include "commands/notification.h"
-#include "proto/command_sf.pb.c"
+#include "proto/sf.pb.c"
+#include "proto/util.h"
 #include <avr/sleep.h>
 #include <messenger/StreamMessenger.h>
+
+#define NOTIFICATION_ONLINE "online"
 
 SensorflowListener::SensorflowListener(Messenger *messenger){
   messenger_ = messenger;
   // Add default commands
-  commands.push_back(AvailableCommand {Command_CommandType_PING, &commandPing});
-  commands.push_back(AvailableCommand {Command_CommandType_READ, &commandRead});
-  commands.push_back(AvailableCommand {Command_CommandType_READ_ALL, &commandReadAll});
-  commands.push_back(AvailableCommand {Command_CommandType_NOTIFICATION, &commandGetNotification});
+  commands[PING_COMMAND] = (AvailableCommand {&commandPing});
+  commands[READ_COMMAND] = (AvailableCommand {&commandRead});
+  commands[READ_ALL_COMMAND] = (AvailableCommand {&commandReadAll});
+  commands[NOTIFICATION_COMMAND] = (AvailableCommand {&commandGetNotification});
 }
 
 bool SensorflowListener::send(const pb_field_t fields[], const void *src_struct){
@@ -28,24 +31,22 @@ bool SensorflowListener::receive(const pb_field_t fields[], void *dest_struct){
 }
 
 bool SensorflowListener::next(bool sleepWhenInactive){
-
   if(sleepWhenInactive) {
     sleepNow();
   } else {
     Command c = Command_init_zero;
+    char buffer[50];
+    c.command.funcs.decode = &decode_string;
+    c.command.arg = buffer;
     if(receive(Command_fields, &c)) {
-      bool found = false;
-      for (Commands::iterator it = commands.begin() ; !found && it != commands.end(); ++it){
-        if(it->command == c.command){
-          found = true;
-          it->fun(this);
-        }
+      Commands::iterator it = commands.find(buffer);
+      if (it != commands.end()) {
+          it->second.fun(this);
+          return true;
       }
-      return found;
-    } else{
-      return false;
     }
   }
+  return false;
 }
 
 void SensorflowListener::setInterrupt(bool activated){
@@ -59,7 +60,8 @@ void SensorflowListener::notify(Notification notification){
 
 void SensorflowListener::online(){
   Notification n;
-  n.what = Notification_NotificationType_ONLINE;
+  n.what.funcs.encode = &encode_string_callback;
+  n.what.arg = (void *)NOTIFICATION_ONLINE;
   notify(n);
 }
 

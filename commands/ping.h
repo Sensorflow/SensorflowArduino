@@ -1,7 +1,7 @@
 #include <SensorflowListener.h>
-#include "proto/command_sf.pb.h"
+#include "proto/sf.pb.h"
 
-
+#define PING_COMMAND "sfp"
 
 void commandPing(SensorflowListener *listener){
   Ping p = {};
